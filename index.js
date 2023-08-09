@@ -41,6 +41,17 @@ async function run() {
             res.send(result);
         })
 
+        //carts data API
+
+        const cartCollection = client.db("bistroMenuItemsDb").collection("carts");
+        app.post('/carts', async (req, res) => {
+            const item = req.body;
+            console.log(item)
+            const result = await cartCollection.insertOne(item);
+            res.send(result);
+        })
+
+
     } finally {
         // // Ensures that the client will close when you finish/error
         // await client.close();
