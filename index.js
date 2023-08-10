@@ -1,4 +1,4 @@
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const express = require('express');
 const app = express();
 const cors = require('cors')
@@ -26,6 +26,18 @@ const client = new MongoClient(uri, {
 
 async function run() {
     try {
+
+        //user sing in info data store API
+        const userCollection = client.db("bistroMenuItemsDb").collection("users");
+        app.post('/users', async (req, res) => {
+            const user = req.body;
+            const result = await userCollection.insertOne(user);
+            res.send(result);
+
+        })
+
+
+
         //Menu data API
 
         const menuCollection = client.db("bistroMenuItemsDb").collection("menuItems");
@@ -62,6 +74,17 @@ async function run() {
             console.log(item)
             const result = await cartCollection.insertOne(item);
             res.send(result);
+        })
+
+        //cart deleted API
+
+        app.delete('/carts/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await cartCollection.deleteOne(query);
+            res.send(result);
+
+
         })
 
 
