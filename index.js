@@ -1,8 +1,9 @@
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const express = require('express');
 const app = express();
-const cors = require('cors')
-require('dotenv').config()
+const cors = require('cors');
+const jwt = require('jsonwebtoken');
+require('dotenv').config();
 
 const port = process.env.PORT || 5000;
 
@@ -33,7 +34,11 @@ async function run() {
             res.send(result);
         })
 
-
+        app.post('/jwt', (req, res) => {
+            const user = req.body;
+            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
+            res.send({ token });
+        })
 
 
 
@@ -54,13 +59,14 @@ async function run() {
 
         app.patch('/users/admin/:id', async (req, res) => {
             const id = req.params.id;
-            console.log(id)
+            // console.log(id)
             const filter = { _id: new ObjectId(id) };
             const updateDoc = {
                 $set: {
                     role: 'admin'
                 },
-            }
+            };
+
             const result = await userCollection.updateOne(filter, updateDoc);
             res.send(result);
 
