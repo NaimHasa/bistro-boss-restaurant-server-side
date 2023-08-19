@@ -16,13 +16,14 @@ app.use(express.json())
 const verifyJWT = (req, res, next) => {
     const authorization = req.headers.authorization;
     if (!authorization) {
-        return res.status(401).send({ error: true, message: 'Unauthorization Access' })
+        return res.status(401).send({ error: true, message: 'unauthorized access' });
     }
-    //bearer token
+    // bearer token
     const token = authorization.split(' ')[1];
+
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
         if (err) {
-            return res.status(401).send({ error: true, message: 'Unauthorization Access' })
+            return res.status(401).send({ error: true, message: 'unauthorized access' })
         }
         req.decoded = decoded;
         next();
@@ -109,27 +110,23 @@ async function run() {
 
         //carts data API
         const cartCollection = client.db("bistroMenuItemsDb").collection("carts");
-        app.get('/carts', async (req, res) => {
+        // cart collection apis
+        app.get('/carts', verifyJWT, async (req, res) => {
             const email = req.query.email;
-            // console.log(email);
+
             if (!email) {
                 res.send([]);
             }
 
             const decodedEmail = req.decoded.email;
             if (email !== decodedEmail) {
-                return res.status(403).send({ error: true, message: 'forbidden Access' })
+                return res.status(403).send({ error: true, message: 'forbidden access' })
             }
 
-
-
-            const query = {
-                email: email
-            }
+            const query = { email: email };
             const result = await cartCollection.find(query).toArray();
             res.send(result);
-
-        })
+        });
 
         app.post('/carts', async (req, res) => {
             const item = req.body;
