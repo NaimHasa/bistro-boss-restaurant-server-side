@@ -108,9 +108,9 @@ async function run() {
             res.send(result);
         })
 
-        //carts data API
+        // cart collection APIS
         const cartCollection = client.db("bistroMenuItemsDb").collection("carts");
-        // cart collection apis
+
         app.get('/carts', verifyJWT, async (req, res) => {
             const email = req.query.email;
 
