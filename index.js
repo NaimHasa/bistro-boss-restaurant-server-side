@@ -46,17 +46,41 @@ const client = new MongoClient(uri, {
 async function run() {
     try {
 
-        //User related APIS
-        app.get('/users', async (req, res) => {
-            const result = await userCollection.find().toArray();
-            res.send(result);
-        })
-
         app.post('/jwt', (req, res) => {
             const user = req.body;
             const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
             res.send({ token });
         })
+
+
+
+        // Warning: use verifyJWT before using verifyAdmin
+        const verifyAdmin = async (req, res, next) => {
+            const email = req.decoded.email;
+            const query = { email: email }
+            const user = await userCollection.findOne(query);
+            if (user?.role !== 'admin') {
+                return res.status(403).send({ error: true, message: 'forbidden message' });
+            }
+            next();
+        }
+
+
+
+
+        //User related APIS
+        app.get('/users', verifyJWT, verifyAdmin, async (req, res) => {
+            const result = await userCollection.find().toArray();
+            res.send(result);
+        })
+
+        /*
+        0-Do not show secure links  to those who should not see the links 
+        1 - use Jwt token: verifyJWT
+        2- use verify admin 
+        
+        
+        */
 
 
 
@@ -74,6 +98,8 @@ async function run() {
             res.send(result);
 
         })
+
+        //Admin users releted API
 
         app.patch('/users/admin/:id', async (req, res) => {
             const id = req.params.id;
@@ -128,9 +154,30 @@ async function run() {
             res.send(result);
         });
 
+        //Admin check API'S  
+        /*
+        1- security layer: verifyJWT
+        2- email same
+        3- Check Admin
+        */
+
+
+        app.get('/users/admin/:email', verifyJWT, async (req, res) => {
+            const email = req.params.email;
+
+            if (req.decoded.email !== email) {
+                res.send({ admin: false })
+            }
+            const query = { email: email }
+            const user = await userCollection.findOne(query);
+            const result = { admin: user?.role === 'admin' };
+            res.send(result);
+        })
+
+
         app.post('/carts', async (req, res) => {
             const item = req.body;
-            console.log(item)
+            // console.log(item)
             const result = await cartCollection.insertOne(item);
             res.send(result);
         })
