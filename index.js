@@ -230,6 +230,22 @@ async function run() {
             })
         })
 
+        //Payment related API 
+
+        const paymentCollection = client.db("bistroMenuItemsDb").collection("payments");
+        app.post('/payments', verifyJWT, async (req, res) => {
+            const payment = req.body;
+            const insertResult = await paymentCollection.insertOne(payment);
+
+            const query = { _id: { $in: payment.cartItems.map(id => new ObjectId(id)) } }
+            const deleteRusult = await cartCollection.deleteMany(query);
+            res.send({ insertResult, deleteRusult });
+        })
+
+
+
+
+
 
     } finally {
         // // Ensures that the client will close when you finish/error
